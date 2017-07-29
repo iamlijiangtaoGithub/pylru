@@ -1,3 +1,7 @@
+usage:
+1. db的cache ;
+2. 复杂计算的cache(防止重复计算);
+3.client的单例（防止重复初始化）
 
 
 PyLRU
@@ -24,10 +28,10 @@ An lrucache object has a dictionary like interface and can be used in the same w
 
     size = 100          # Size of the cache. The maximum number of key/value
                         # pairs you want the cache to hold.
-    
+
     cache = pylru.lrucache(size)
                         # Create a cache object.
-    
+
     value = cache[key]  # Lookup a value given its key.
     cache[key] = value  # Insert a key/value pair.
     del cache[key]      # Delete a value given its key.
@@ -36,9 +40,9 @@ An lrucache object has a dictionary like interface and can be used in the same w
                         # Lookup and insert both move the key/value to the most
                         # recently used position. Delete (obviously) removes a
                         # key/value from whatever position it was in.
-                        
+
     key in cache        # Test for membership. Does not affect the cache order.
-    
+
     value = cache.peek(key)
                         # Lookup a value given its key. Does not affect the
                         # cache order.
@@ -60,7 +64,7 @@ An lrucache object has a dictionary like interface and can be used in the same w
                         # during iteration is undefined. If you really need to
                         # do something of the sort use list(cache.keys()), then
                         # loop over the list elements.
-                        
+
     for key in cache:   # Caches support __iter__ so you can use them directly
         pass            # in a for loop to loop over the keys just like
                         # cache.keys()
@@ -94,7 +98,7 @@ WriteThroughCacheManager
 
 Often a cache is used to speed up access to some other high latency object. For example, imagine you have a backend storage object that reads/writes from/to a remote server. Let us call this object *store*. If store has a dictionary interface a cache manager class can be used to compose the store object and an lrucache. The manager object exposes a dictionary interface. The programmer can then interact with the manager object as if it were the store. The manager object takes care of communicating with the store and caching key/value pairs in the lrucache object.
 
-Two different semantics are supported, write-through (WriteThroughCacheManager class) and write-back (WriteBackCacheManager class). With write-through, lookups from the store are cached for future lookups. Insertions and deletions are updated in the cache and written through to the store immediately. Write-back works the same way, but insertions are updated only in the cache. These "dirty" key/value pair will only be updated to the underlying store when they are ejected from the cache or when a sync is performed. The WriteBackCacheManager class is discussed more below. 
+Two different semantics are supported, write-through (WriteThroughCacheManager class) and write-back (WriteBackCacheManager class). With write-through, lookups from the store are cached for future lookups. Insertions and deletions are updated in the cache and written through to the store immediately. Write-back works the same way, but insertions are updated only in the cache. These "dirty" key/value pair will only be updated to the underlying store when they are ejected from the cache or when a sync is performed. The WriteBackCacheManager class is discussed more below.
 
 The WriteThroughCacheManager class takes as arguments the store object you want to compose and the cache size. It then creates an LRU cache and automatically manages it::
 
@@ -108,21 +112,21 @@ The WriteThroughCacheManager class takes as arguments the store object you want 
 
     # Now the object *cached* can be used just like store, except caching is
     # automatically handled.
-    
+
     value = cached[key] # Lookup a value given its key.
     cached[key] = value # Insert a key/value pair.
     del cached[key]     # Delete a value given its key.
-    
+
     key in cache        # Test for membership. Does not affect the cache order.
 
     cached.keys()       # Returns store.keys()
-    cached.values()     # Returns store.values() 
+    cached.values()     # Returns store.values()
     cached.items()      # Returns store.items()
                         #
                         # These calls have no effect on the cache order.
                         # The iterators iterate over their respective elements
                         # in the order dictated by store.
-                        
+
     for key in cached:  # Same as store.keys()
 
     cached.size()       # Returns the size of the cache
@@ -147,14 +151,14 @@ Similar to the WriteThroughCacheManager class except write-back semantics are us
                         # Or
     cached = pylru.lruwrap(store, size, True)
                         # This is a factory function that does the same thing.
-                        
+
     value = cached[key] # Lookup a value given its key.
     cached[key] = value # Insert a key/value pair.
     del cached[key]     # Delete a value given its key.
-    
+
     key in cache        # Test for membership. Does not affect the cache order.
 
-                        
+
     cached.keys()       # Return an iterator over the keys in the cache/store
     cached.values()     # Return an iterator over the values in the cache/store
     cached.items()      # Return an iterator over the (key, value) pairs in the
@@ -176,7 +180,7 @@ Similar to the WriteThroughCacheManager class except write-back semantics are us
                         # during iteration is undefined. If you really need to
                         # do something of the sort use list(cached.keys()),
                         # then loop over the list elements.
-                        
+
     for key in cached:  # Same as cached.keys()
 
     cached.size()       # Returns the size of the cache
@@ -184,13 +188,13 @@ Similar to the WriteThroughCacheManager class except write-back semantics are us
                         # zero. Returns the new size x.
 
     cached.clear()      # Remove all items from the store and cache.
-    
+
     cached.sync()       # Make the store and cache consistent. Write all
                         # cached changes to the store that have not been
                         # yet.
-                        
+
     cached.flush()      # Calls sync() then clears the cache.
-    
+
 
 To help the programmer ensure that the final sync() is called, WriteBackCacheManager objects can be used in a with statement::
 
